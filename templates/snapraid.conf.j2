@@ -1,0 +1,20 @@
+# local content file
+content /var/snapraid.content
+
+# define parity disks
+{% for disk in device_paths['parity'] %}
+parity {{ media_pool_root }}/parity/{{ loop.index0 }}/snapraid.parity
+{% endfor %}
+
+# set snapraid parity file locations on data disks
+{% for disk in device_paths['data'] %}
+content {{ media_pool_root }}/disks/{{ loop.index0 }}/.snapraid.content
+{% endfor %}
+
+# set protected disks
+{% for disk in device_paths['data'] %}
+disk d{{ loop.index0 }} {{ media_pool_root }}/disks/{{ loop.index0 }}
+{% endfor %}
+
+# exclusions: exclude FILE, exclude DIR/ exclude /PATH/FILE exclude /PATH/DIR
+exclude /lost+found/

@@ -1,0 +1,40 @@
+---
+- hosts: nodes
+  pre_tasks:
+    - name: Install public key
+      ansible.posix.authorized_key:
+        exclusive: true
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        user: "{{ ansible_user }}"
+      when: install_ssh_keys
+      tags: install_keys
+ 
+    - name: Update APT package cache
+      ansible.builtin.apt:
+        update_cache: yes
+      become: yes
+        
+    - name: Install default apt packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ default_packages }}"
+      become: yes
+      tags: packages
+
+  post_tasks:  # Run these after k8s installation
+    - name: Autoremove Apt packages
+      ansible.builtin.apt:
+        autoremove: true
+        autoclean: true
+      tags: packages
+
+    - name: Install argocd
+      ansible.builtin.shell: |
+        kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v2.13.0/manifests/install.yaml
+      become: true
+      tags: argo
+
+  roles:
+     - role: pyratlabs.k3s
+       tags: kubernetes, kubernetes_install

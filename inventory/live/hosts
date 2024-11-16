@@ -1,0 +1,4 @@
+ungrouped:
+  hosts:
+    192.168.86.21:
+      ansible_user: eric

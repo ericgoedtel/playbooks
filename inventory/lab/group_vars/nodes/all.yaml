@@ -1,0 +1,10 @@
+default_packages:
+   - cron
+   - gcc
+   - git
+   - make
+   - screen
+
+install_ssh_keys: no
+k3s_become: yes
+k3s_release_version: v1.31.2+k3s1

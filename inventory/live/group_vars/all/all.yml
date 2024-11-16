@@ -1,0 +1,57 @@
+default_packages:
+   - cron
+   - gcc
+   - git
+   - make
+   - mergerfs
+   - parted
+   - python3-pip
+   - rsyslog
+   - screen
+   - smartmontools
+
+snapraid_release: 12.2
+snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
+snapraid_build_path: /var/tmp/snapraid
+
+install_ssh_keys: no
+
+k3s_build_cluster: no
+k3s_become: yes
+k3s_release_version: v1.27.7+k3s2
+
+media_pool_root: "/mnt/pools/media"
+device_paths:
+  parity:
+    - "ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K" # current parity disk
+  data:
+    - "ata-WDC_WD60EFZX-68B3FN0_WD-C82E705K" # disk 0, always.
+    - "ata-WDC_WD60EFPX-68C5ZN0_WD-WXL2AB2FULDS" # disk 1
+    - "ata-WDC_WD60EFPX-68C5ZN0_WD-WX22DC3JNE0S"
+  cache: # TBD, unused value
+    - "ata-WDC_WD30EFRX-68EUZN0_WD-WMC4N2130415"
+
+htpc_root: "/opt/htpc"
+media_mount_path: "{{ htpc_root }}/media"
+
+logrotate_scripts:
+  - name: snapraid-sync
+    path: "/var/log/snapraid/sync.log"
+    options:
+      - daily
+      - rotate 10
+      - missingok
+      - compress
+      - copytruncate
+      - delaycompress
+  - name: snapraid-scrub
+    path: "/var/log/snapraid/scrub.log"
+    options:
+      - weekly
+      - rotate 10
+      - missingok
+      - compress
+      - copytruncate
+      - delaycompress
+
+htk8s_repo_release: v0.1.0

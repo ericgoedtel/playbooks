@@ -1,0 +1,3 @@
+{% for item in devices %}
+/dev/disk/by-id/{{ item }} -a -o on -S on -s (S/../../22/00|L/01/2|1/1)
+{% endfor %}
