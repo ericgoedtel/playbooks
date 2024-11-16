@@ -124,6 +124,44 @@
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
+    - name: Configure ApplicationSet
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconf_file }}"
+        namespace: "{{ argocd_namespace }}"
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: ApplicationSet
+          metadata:
+            name: home-apps
+          spec:
+            generators:
+              - git:
+                  repoURL: 'https://github.com/ericgoedtel/applications.git'
+                  revision: main
+                  directories:
+                    - path: 'apps/*'
+            template:
+              metadata:
+                name: "{{ '{{' }}path.basename{{ '}}' }}"
+              spec:
+                project: default
+                source:
+                  repoURL: "{{ argo_applications_repo }}"
+                  targetRevision: main
+                  path: "{{ '{{' }}path{{ '}}' }}"
+                destination:
+                  server: 'https://kubernetes.default.svc'
+                  namespace: "{{ '{{' }}path.basename{{ '}}' }}"
+                syncPolicy:
+                  automated:
+                    prune: true
+                    selfHeal: true
+      tags: kubernetes, argo
+      become: yes
+      vars:
+        ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
+
   roles:
      - role: pyratlabs.k3s
        tags: kubernetes, k3s
