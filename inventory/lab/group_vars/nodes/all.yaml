@@ -3,8 +3,19 @@ default_packages:
    - gcc
    - git
    - make
+   - python3-virtualenv
    - screen
+
+pip_packages:
+  - name: kubernetes
+    version: "<=32.0.0"
+
+virtualenv_root: /tmp/virtualenv
 
 install_ssh_keys: no
 k3s_become: yes
 k3s_release_version: v1.31.2+k3s1
+k3s_kubeconf_file: /etc/rancher/k3s/k3s.yaml
+
+argocd_namespace: argocd-system
+argocd_manifest_path: https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v2.13.0/manifests/install.yaml

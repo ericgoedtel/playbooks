@@ -7,12 +7,26 @@
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
         user: "{{ ansible_user }}"
       when: install_ssh_keys
-      tags: install_keys
+      tags: bootstrap, ssh
+
+    - name: Disable swap
+      ansible.builtin.shell: swapoff -a
+      become: true
+      tags: bootstrap, swap
+
+    - name: Permanently unmount swap
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^.*swap.*'
+        state: absent
+      become: true
+      tags: bootstrap, swap
  
     - name: Update APT package cache
       ansible.builtin.apt:
         update_cache: yes
       become: yes
+      tags: bootstrap, packages, apt
         
     - name: Install default apt packages
       ansible.builtin.package:
@@ -20,21 +34,96 @@
         state: present
       loop: "{{ default_packages }}"
       become: yes
-      tags: packages
+      tags: bootstrap, packages, apt
+
+    - name: Install remote pip packages
+      ansible.builtin.pip:
+        virtualenv: "{{ virtualenv_root }}"
+        name: "{{ item.name }}{{ item.version | default('') }}"
+      loop: "{{ pip_packages }}"
+      tags: bootstrap, packages, pip, kubernetes
 
   post_tasks:  # Run these after k8s installation
     - name: Autoremove Apt packages
       ansible.builtin.apt:
         autoremove: true
         autoclean: true
+      become: true
       tags: packages
 
-    - name: Install argocd
-      ansible.builtin.shell: |
-        kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v2.13.0/manifests/install.yaml
-      become: true
+    # TODO: Probably should move this to a role
+    - name: Create ArgoCD namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconf_file }}"
+        state: present
+        kind: Namespace
+        name: "{{ argocd_namespace }}"
       tags: argo
+      become: yes
+      vars:
+        ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
+
+    - name: Install ArgoCD
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconf_file }}"
+        namespace: "{{ argocd_namespace }}"
+        state: present
+        src: "{{ argocd_manifest_path }}"
+      tags: kubernetes, argo
+      become: yes
+      vars:
+        ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
+
+    - name: Patch ArgoCD ConfigMap
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconf_file }}"
+        namespace: "{{ argocd_namespace }}"
+        state: patched
+        kind: ConfigMap
+        name: argocd-cmd-params-cm
+        definition:
+          data:
+            server.disable.auth: "true"
+            server.insecure: "true"
+            server.rootpath: /argocd
+      tags: kubernetes, argo
+      register: configmap
+      become: yes
+      vars:
+        ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
+
+    - name: Restart ArgoCD
+      ansible.builtin.shell: |
+        kubectl rollout restart deployment argocd-server -n {{ argocd_namespace}}
+      become: true
+      tags: kubernetes, argo
+      when: configmap.changed
+
+    - name: Expose ArgoCD server
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconf_file }}"
+        namespace: "{{ argocd_namespace }}"
+        state: present
+        definition:
+          apiVersion: traefik.containo.us/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: argocd
+          spec:
+            routes:
+            - kind: Rule
+              match: PathPrefix(`/argocd`)
+              priority: 0
+              services:
+              - kind: Service
+                name: argocd-server
+                namespace: "{{ argocd_namespace }}"
+                port: 80
+      tags: kubernetes, argo
+      become: yes
+      vars:
+        ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
   roles:
      - role: pyratlabs.k3s
-       tags: kubernetes, kubernetes_install
+       tags: kubernetes, k3s
