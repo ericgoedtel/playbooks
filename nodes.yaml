@@ -149,7 +149,7 @@
                 source:
                   repoURL: "{{ argo_applications_repo }}"
                   targetRevision: main
-                  path: "{{ '{{' }}path{{ '}}' }}"
+                  path: "{{ '{{' }}path{{ '}}' }}/overlays/{{ environment_name }}"
                 destination:
                   server: 'https://kubernetes.default.svc'
                   namespace: "{{ '{{' }}path.basename{{ '}}' }}"
