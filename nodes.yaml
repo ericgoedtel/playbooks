@@ -153,10 +153,15 @@
                 destination:
                   server: 'https://kubernetes.default.svc'
                   namespace: "{{ '{{' }}path.basename{{ '}}' }}"
+                ignoreDifferences:
+                  - kind: Secret
+                    name: default-api-key
+                    jsonPointers:
+                      - /data
                 syncPolicy:
                   automated:
                     prune: true
-                    selfHeal: true
+                    selfHeal: false
       tags: kubernetes, argo
       become: yes
       vars:
