@@ -9,3 +9,12 @@ storage:
     wsl:
       ansible_user: eric
       ansible_host: 172.26.78.123
+      devices:
+        - name: /dev/loop3
+          use: parity
+        - name: /dev/loop4
+          use: data
+        - name: /dev/loop5
+          use: data
+        - name: /dev/loop6
+          use: data

@@ -19,16 +19,14 @@
 
     - name: Configure SMART testing
       ansible.builtin.template:
-        src: templates/smartd.conf.j2
+        src: templates/smartd.conf.j2  # Uses `devices`
         dest: /etc/smartd.conf
         owner: root
         group: root
         mode: '0644'
-      vars:
-        devices: "{{ device_paths['parity'] + device_paths['data'] + device_paths['cache'] }}"
       become: yes
       notify: Restart smartd
-      tags: monitoring,storage
+      tags: monitoring, storage, smart
 
     - name: Check for SnapRAID install
       ansible.builtin.stat:
