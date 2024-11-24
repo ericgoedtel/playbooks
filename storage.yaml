@@ -91,47 +91,34 @@
       become: yes
       tags: snapraid
 
-    - name: Add partitions for data disks
+    - name: Add partitions for each disk device
       community.general.parted:
-        device: "/dev/disk/by-id/{{ item }}"
+        device: "{{ item.name }}"
         label: "gpt"
-        name: "pool-media-{{ index }}"
+        name: "pool-{{ item.pool }}-{{ item.use }}-{{ index }}"
         number: 1
         state: "present"
         unit: "TB"
-      loop: "{{ device_paths['data'] | flatten(levels=1) }}"
+      loop: "{{ devices }}"
       loop_control:
         index_var: index
       become: yes
       tags: storage, partitions
 
-    - name: Add partitions for parity disks
-      community.general.parted:
-        device: "/dev/disk/by-id/{{ item }}"
-        label: "gpt"
-        name: "pool-parity-{{ index }}"
-        number: 1
-        state: "present"
-        unit: "TB"
-      loop: "{{ device_paths['parity'] | flatten(levels=1) }}"
-      loop_control:
-        index_var: index
-      become: yes
-      tags: storage, partitions
-
-    - name: Add partitions for cache disks
-      community.general.parted:
-        device: "/dev/disk/by-id/{{ item }}"
-        label: "gpt"
-        name: "pool-cache-{{ index }}"
-        number: 1
-        state: "present"
-        unit: "TB"
-      loop: "{{ device_paths['cache'] | flatten(levels=1) }}"
-      loop_control:
-        index_var: index
-      become: yes
-      tags: storage, partitions
+    # TODO: Need to put a cache disk in the lab
+    # - name: Add partitions for cache disks
+    #   community.general.parted:
+    #     device: "/dev/disk/by-id/{{ item }}"
+    #     label: "gpt"
+    #     name: "pool-cache-{{ index }}"
+    #     number: 1
+    #     state: "present"
+    #     unit: "TB"
+    #   loop: "{{ device_paths['cache'] | flatten(levels=1) }}"
+    #   loop_control:
+    #     index_var: index
+    #   become: yes
+    #   tags: storage, partitions
 
     - name: Create data disk filesystems
       community.general.filesystem:

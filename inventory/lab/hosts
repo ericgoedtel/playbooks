@@ -11,10 +11,18 @@ storage:
       ansible_host: 172.26.78.123
       devices:
         - name: /dev/loop3
+          pool: media
           use: parity
+          protected: false  # Do not need to protect parity drives.
         - name: /dev/loop4
-          use: data
+          pool: media
+          use: disks
+          protected: true
         - name: /dev/loop5
-          use: data
+          pool: media
+          use: disks
+          protected: true
         - name: /dev/loop6
-          use: data
+          pool: media
+          use: disks
+          protected: true

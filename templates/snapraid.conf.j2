@@ -2,18 +2,18 @@
 content /var/snapraid.content
 
 # define parity disks
-{% for disk in device_paths['parity'] %}
-parity {{ media_pool_root }}/parity/{{ loop.index0 }}/snapraid.parity
+{% for device in devices | selectattr('use', 'equalto', 'parity') %}
+parity {{ root_pool_path }}/{{ device['pool']}}/parity/{{ loop.index0 }}/snapraid.parity
 {% endfor %}
 
 # set snapraid parity file locations on data disks
-{% for disk in device_paths['data'] %}
-content {{ media_pool_root }}/disks/{{ loop.index0 }}/.snapraid.content
+{% for device in devices | selectattr('use', 'equalto', 'disks') %}
+parity {{ root_pool_path }}/{{ device['pool']}}/disks/{{ loop.index0 }}/.snapraid.content
 {% endfor %}
 
 # set protected disks
-{% for disk in device_paths['data'] %}
-disk d{{ loop.index0 }} {{ media_pool_root }}/disks/{{ loop.index0 }}
+{% for device in devices | selectattr('protected', 'equalto', true) %}
+disk d{{ loop.index0 }} {{ root_pool_path }}/{{ device['pool']}}/{{ device['use']}}/{{ loop.index0 }}
 {% endfor %}
 
 # exclusions: exclude FILE, exclude DIR/ exclude /PATH/FILE exclude /PATH/DIR
