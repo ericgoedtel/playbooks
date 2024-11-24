@@ -7,11 +7,12 @@ These should be run on the Ansible controller. In my case, a Windows WSL deploym
 Create a new SSH key if needed: `ssh-keygen`
 
 ```
-pip3 install virtualenv
-virtualenv ~/venvs/default
-apt install sshpass
+python3 -m pip install virtualenv
+python3 -m virtualenv ~/venvs/default
+source ~/venvs/default/bin/activate
 pip install -r requirements.txt
 ansible-galaxy install -r ansible-requirements.yml
+apt install sshpass
 ```
  
 ## Deployment

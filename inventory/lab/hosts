@@ -3,3 +3,9 @@ nodes:
     node1:
       ansible_user: eric
       ansible_host: 192.168.86.29
+
+storage:
+  hosts:
+    wsl:
+      ansible_user: eric
+      ansible_host: 172.26.78.123

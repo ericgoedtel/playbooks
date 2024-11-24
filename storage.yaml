@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: storage
   pre_tasks:
     - name: Install public key
       ansible.posix.authorized_key:
@@ -14,15 +14,6 @@
         name: "{{ item }}"
         state: present
       loop: "{{ default_packages }}"
-      become: yes
-      tags: packages
-
-    - name: Install default pip packages
-      ansible.builtin.pip:
-        name: "{{ item }}"
-        state: present
-        executable: /usr/bin/pip3 # from apt package
-      loop: ["kubernetes"]
       become: yes
       tags: packages
 
