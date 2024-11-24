@@ -1,4 +1,5 @@
-ungrouped:
+storage:
   hosts:
-    192.168.86.21:
+    htpc:
       ansible_user: eric
+      ansible_host: 192.168.86.21

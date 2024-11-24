@@ -10,10 +10,6 @@ default_packages:
    - screen
    - smartmontools
 
-snapraid_release: 12.2
-snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
-snapraid_build_path: /var/tmp/snapraid
-
 install_ssh_keys: no
 
 k3s_build_cluster: no
@@ -33,25 +29,3 @@ device_paths:
 
 htpc_root: "/opt/htpc"
 media_mount_path: "{{ htpc_root }}/media"
-
-logrotate_scripts:
-  - name: snapraid-sync
-    path: "/var/log/snapraid/sync.log"
-    options:
-      - daily
-      - rotate 10
-      - missingok
-      - compress
-      - copytruncate
-      - delaycompress
-  - name: snapraid-scrub
-    path: "/var/log/snapraid/scrub.log"
-    options:
-      - weekly
-      - rotate 10
-      - missingok
-      - compress
-      - copytruncate
-      - delaycompress
-
-htk8s_repo_release: v0.1.0
