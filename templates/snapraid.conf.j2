@@ -8,7 +8,7 @@ parity {{ root_pool_path }}/{{ device['pool']}}/parity/{{ loop.index0 }}/snaprai
 
 # set snapraid parity file locations on data disks
 {% for device in devices | selectattr('use', 'equalto', 'disks') %}
-parity {{ root_pool_path }}/{{ device['pool']}}/disks/{{ loop.index0 }}/.snapraid.content
+content {{ root_pool_path }}/{{ device['pool']}}/disks/{{ loop.index0 }}/.snapraid.content
 {% endfor %}
 
 # set protected disks
