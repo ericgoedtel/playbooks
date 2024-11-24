@@ -1,0 +1,186 @@
+---
+- hosts: storage
+  pre_tasks:
+    - name: Install public key
+      ansible.posix.authorized_key:
+        exclusive: true
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        user: "{{ ansible_user }}"
+      when: install_ssh_keys
+      tags: install_keys
+ 
+    - name: Install default apt packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ default_packages }}"
+      become: yes
+      tags: packages
+
+    - name: Configure SMART testing
+      ansible.builtin.template:
+        src: templates/smartd.conf.j2  # Uses `devices`
+        dest: /etc/smartd.conf
+        owner: root
+        group: root
+        mode: '0644'
+      become: yes
+      notify: Restart smartd
+      tags: monitoring, storage, smart
+
+    - name: Check for SnapRAID install
+      ansible.builtin.stat:
+        path: /usr/local/bin/snapraid
+      register: snapraid_installation
+      tags: snapraid
+
+    - name: Create build directory
+      ansible.builtin.file:
+        path: "{{ snapraid_build_path }}"
+        state: directory
+      tags: snapraid
+
+    - name: Download SnapRAID
+      ansible.builtin.get_url:
+        url: "{{ snapraid_url }}"
+        dest: "{{ snapraid_build_path }}"
+      when: not snapraid_installation.stat.exists
+      tags: snapraid
+
+    - name: Extract SnapRAID
+      ansible.builtin.unarchive:
+        src: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}.tar.gz"
+        dest: "{{ snapraid_build_path }}"
+        remote_src: true
+      register: snapraid_extraction
+      when: not snapraid_installation.stat.exists
+      tags: snapraid
+
+    - name: Make and build SnapRAID
+      ansible.builtin.shell:
+        chdir: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
+        cmd: "./configure && make"
+      when: snapraid_extraction.changed
+      tags: snapraid
+
+    - name: Install SnapRAID
+      ansible.builtin.shell:
+        chdir: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
+        cmd: "make install"
+      become: yes
+      when: not snapraid_installation.stat.exists
+      tags: snapraid
+
+    - name: Configure SnapRAID
+      ansible.builtin.template:
+        src: templates/snapraid.conf.j2
+        dest: /etc/snapraid.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: yes
+      tags: snapraid
+
+    - name: Create SnapRAID log path
+      ansible.builtin.file:
+        path: /var/log/snapraid/
+        state: "directory"
+        owner: root
+        group: root
+        mode: "0644"
+      become: yes
+      tags: snapraid
+
+    - name: Add partitions for each disk device
+      community.general.parted:
+        device: "{{ item.name }}"
+        label: "gpt"
+        name: "pool-{{ item.pool }}-{{ item.use }}-{{ index }}"
+        number: 1
+        state: "present"
+        unit: "TB"
+      loop: "{{ devices }}"
+      loop_control:
+        index_var: index
+      register: partitions
+      become: yes
+      tags: storage, partitions
+
+    - name: Create data disk filesystems from partitioned disks
+      community.general.filesystem:
+        dev: "/dev/disk/by-partlabel/{{ item }}"
+        force: false  # Definitely don't allow this
+        fstype: "ext4"
+        state: "present"
+      loop: "{{ partitions.results | map(attribute='partitions') | map('first') | map(attribute='name') | list }}"
+      become: yes
+      tags: storage, filesystems
+
+    - name: Create data disk folder structure
+      ansible.builtin.file:
+        path: "{{ root_pool_path }}/{{ item.pool }}/{{ item.use }}/{{ index }}"
+        state: "directory"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "755"
+      loop: "{{ devices }}"
+      loop_control:
+        index_var: index
+      become: yes
+      tags: storage, paths
+
+    # Kludgey hack which assumes only one part per disk
+    - name: Automount data disk filesystems
+      ansible.posix.mount:
+        backup: true
+        boot: yes
+        fstype: ext4
+        path: "{{ root_pool_path }}/{{ item.pool }}/{{ item.use }}/{{ index }}"
+        src: "{{ item.name }}-part1"
+        state: mounted
+      loop: "{{ devices }}"
+      loop_control:
+        index_var: index
+      become: yes
+      tags: storage, automount
+
+    - name: Automount mergerfs pools
+      ansible.posix.mount:
+        backup: true
+        boot: yes
+        fstype: fuse.mergerfs
+        opts: "moveonenospc=true"
+        path: "{{ item.path }}"
+        src: "{{ root_pool_path }}/{{ item.name }}/disks/*"
+        state: "mounted"
+      loop: "{{ mergerfs_pools }}"
+      become: yes
+      tags: storage, automount
+
+    - name: Schedule snapraid sync
+      ansible.builtin.cron:
+        name: snapraid-sync
+        special_time: daily
+        job: /usr/local/bin/snapraid sync -l /var/log/snapraid/sync.log
+      become: yes
+      tags: snapraid, logging
+
+    - name: Schedule snapraid scrub
+      ansible.builtin.cron:
+        name: snapraid-scrub
+        special_time: weekly
+        job: /usr/local/bin/snapraid scrub -l /var/log/snapraid/scrub.log
+      become: yes
+      tags: snapraid, logging
+
+  roles:
+     - role: nickhammond.logrotate
+       tags: logging, monitoring
+       become: yes
+
+  handlers:
+    - name: Restart smartd
+      systemd:
+        name: smartmontools
+        state: restarted
+      become: yes

@@ -3,3 +3,34 @@ nodes:
     node1:
       ansible_user: eric
       ansible_host: 192.168.86.29
+
+storage:
+  hosts:
+    wsl:
+      ansible_user: eric
+      ansible_host: 172.26.78.123
+      mergerfs_pools:
+        # TODO: NFS share pool
+        - name: media
+          path: /opt/htpc/media
+      devices:
+        - name: /dev/loop3
+          pool: media
+          use: parity
+          protected: false  # Do not need to protect parity drives.
+        - name: /dev/loop4
+          pool: media
+          use: disks
+          protected: true
+        - name: /dev/loop5
+          pool: media
+          use: disks
+          protected: true
+        - name: /dev/loop6
+          pool: media
+          use: disks
+          protected: true
+        - name: /dev/loop7
+          pool: media
+          use: cache
+          protected: false  # Download caches not worth snapping

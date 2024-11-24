@@ -1,0 +1,25 @@
+root_pool_path: /mnt/pools
+
+snapraid_release: 12.2
+snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
+snapraid_build_path: /var/tmp/snapraid
+
+logrotate_scripts:
+  - name: snapraid-sync
+    path: "/var/log/snapraid/sync.log"
+    options:
+      - daily
+      - rotate 10
+      - missingok
+      - compress
+      - copytruncate
+      - delaycompress
+  - name: snapraid-scrub
+    path: "/var/log/snapraid/scrub.log"
+    options:
+      - weekly
+      - rotate 10
+      - missingok
+      - compress
+      - copytruncate
+      - delaycompress
