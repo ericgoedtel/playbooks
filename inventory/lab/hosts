@@ -9,6 +9,10 @@ storage:
     wsl:
       ansible_user: eric
       ansible_host: 172.26.78.123
+      mergerfs_pools:
+        # TODO: NFS share pool
+        - name: media
+          path: /opt/htpc/media
       devices:
         - name: /dev/loop3
           pool: media
@@ -26,3 +30,7 @@ storage:
           pool: media
           use: disks
           protected: true
+        - name: /dev/loop7
+          pool: media
+          use: cache
+          protected: false  # Download caches not worth snapping
