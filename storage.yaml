@@ -245,17 +245,6 @@
       become: yes
       tags: storage, automount, cache
 
-    - name: Create HTPC folder structure
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: "0755"
-      loop: [ "{{ htpc_root }}", "{{ media_mount_path }}" ]
-      become: yes
-      tags: storage, argo, htpc
-
     - name: Automount mergerfs pool
       ansible.posix.mount:
         backup: true
@@ -284,27 +273,7 @@
       become: yes
       tags: snapraid, logging
 
-    - name: Clone deployment tooling repo
-      ansible.builtin.git:
-        clone: true
-        depth: 1
-        dest: "{{ htpc_root }}"
-        repo: https://github.com/ericgoedtel/htk8s
-        version: main
-      tags: argo, htpc
-
-  post_tasks:  # Run these after k8s installation
-    - name: Apply deployment tooling installer
-      kubernetes.core.k8s:
-        src: "{{ htpc_root }}/install_argocd.yaml"
-        kubeconfig: "/etc/rancher/k3s/k3s.yaml" # On the remote
-      become: yes
-      tags: argo, htpc, kubernetes
-
   roles:
-     - role: pyratlabs.k3s
-       tags: kubernetes
-
      - role: nickhammond.logrotate
        tags: logging, monitoring
        become: yes
@@ -315,7 +284,3 @@
         name: smartmontools
         state: restarted
       become: yes
-
-      # TODO: make sure notifications for smart checks go somewhere
-      # TODO: where on earth is var log messages/syslog
-      # TODO: Monitor everything else
