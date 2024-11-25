@@ -102,16 +102,17 @@
       loop: "{{ devices }}"
       loop_control:
         index_var: index
+      register: partitions
       become: yes
       tags: storage, partitions
 
-    - name: Create data disk filesystems
+    - name: Create data disk filesystems from partitioned disks
       community.general.filesystem:
-        dev: "{{ item.name }}"
+        dev: "/dev/disk/by-partlabel/{{ item }}"
         force: false  # Definitely don't allow this
         fstype: "ext4"
         state: "present"
-      loop: "{{ devices }}"
+      loop: "{{ partitions.results | map(attribute='partitions') | map('first') | map(attribute='name') | list }}"
       become: yes
       tags: storage, filesystems
 
