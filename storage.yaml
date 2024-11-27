@@ -124,8 +124,17 @@
         group: "{{ ansible_user }}"
         mode: "755"
       loop: "{{ devices }}"
-      loop_control:
-        index_var: index
+      become: yes
+      tags: storage, paths
+
+    - name: Create nfs share structure
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: "directory"
+        owner: "{{ ansible_user }}"  # TODO: This is probably incorrect
+        group: "{{ ansible_user }}"
+        mode: "755"
+      loop: "{{ nfs_shares }}"
       become: yes
       tags: storage, paths
 

@@ -6,6 +6,13 @@ storage:
       mergerfs_pools:
         - name: media
           path: /opt/htpc/media
+      nfs_shares:  # Add paths here for new shares
+        - name: media
+          path: /srv/shares/media
+        - name: cache
+          path: /srv/shares/cache
+        - name: kinokube
+          path: /srv/shares/kinokube
       devices:
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K
           pool: media
@@ -32,3 +39,9 @@ storage:
           use: cache
           path: /opt/htpc/downloads
           protected: false  # Download caches not worth snapping
+          # partitioning is opinionated about being a "pool"
+        - name: /dev/disk/by-id/scsi-1ATA_Samsung_SSD_860_EVO_250GB_S4BFNJ0N306305X
+          pool: shares
+          use: root
+          path: /srv/shares
+          protected: false
