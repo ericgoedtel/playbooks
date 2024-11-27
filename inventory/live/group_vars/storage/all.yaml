@@ -1,5 +1,11 @@
 root_pool_path: /mnt/pools
 
+group_packages:
+   - mergerfs
+   - nfs-kernel-server
+   - parted
+   - smartmontools
+
 snapraid_release: 12.2
 snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
 snapraid_build_path: /var/tmp/snapraid

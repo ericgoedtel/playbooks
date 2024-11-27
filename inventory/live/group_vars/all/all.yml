@@ -1,13 +1,12 @@
-default_packages:
+default_packages: # These are not really what should be installed *everywhere*. Problem for later
    - cron
-   - gcc
-   - git
-   - make
-   - mergerfs
-   - parted
-   - python3-pip
+   - gcc # needed?
+   - git # needed?
+   - make # needed?
+   - python3-pip # node
    - rsyslog
    - screen
-   - smartmontools
+
+group_packages: []  # This solves the above problem, NYI
 
 install_ssh_keys: no

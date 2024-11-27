@@ -17,6 +17,14 @@
       become: yes
       tags: packages
 
+    - name: Install group apt packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ group_packages }}"
+      become: yes
+      tags: packages
+
     - name: Configure SMART testing
       ansible.builtin.template:
         src: templates/smartd.conf.j2  # Uses `devices`
@@ -131,12 +139,21 @@
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: "directory"
-        owner: "{{ ansible_user }}"  # TODO: This is probably incorrect
-        group: "{{ ansible_user }}"
+        owner: "nobody"
+        group: "nogroup"
         mode: "755"
       loop: "{{ nfs_shares }}"
       become: yes
-      tags: storage, paths
+      tags: storage, nfs, paths
+
+    - name: Configure NFS exports
+      template:
+        src: exports.j2
+        dest: /etc/exports
+      notify:
+        - Restart nfs
+      become: yes
+      tags: storage, nfs
 
     # Kludgey hack which assumes only one part per disk
     - name: Automount data disk filesystems
@@ -166,6 +183,18 @@
       become: yes
       tags: storage, automount
 
+    - name: Automount nfs shares
+      ansible.posix.mount:
+        backup: true
+        boot: yes
+        fstype: ext4
+        path: "{{ item.path }}"
+        src: "{{ item.name }}"
+        state: "mounted"
+      loop: "{{ devices | selectattr('pool', 'equalto', 'shares') }}"
+      become: yes
+      tags: storage, nfs, automount
+
     - name: Schedule snapraid sync
       ansible.builtin.cron:
         name: snapraid-sync
@@ -191,5 +220,10 @@
     - name: Restart smartd
       systemd:
         name: smartmontools
+        state: restarted
+      become: yes
+    - name: Restart nfs
+      service:
+        name: nfs-kernel-server
         state: restarted
       become: yes
