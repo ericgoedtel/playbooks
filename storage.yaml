@@ -118,7 +118,7 @@
 
     - name: Create data disk folder structure
       ansible.builtin.file:
-        path: "{{ root_pool_path }}/{{ item.pool }}/{{ item.use }}/{{ index }}"
+        path: "{{ item.path }}"
         state: "directory"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -135,7 +135,7 @@
         backup: true
         boot: yes
         fstype: ext4
-        path: "{{ root_pool_path }}/{{ item.pool }}/{{ item.use }}/{{ index }}"
+        path: "{{ item.path }}"
         src: "{{ item.name }}-part1"
         state: mounted
       loop: "{{ devices }}"

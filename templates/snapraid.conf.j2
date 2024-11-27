@@ -9,24 +9,18 @@ Although That might be best
 #}
 
 # define parity disks
-{% for device in devices %}
-{% if device.use == 'parity' %}
-parity {{ root_pool_path }}/{{ device['pool']}}/parity/{{ loop.index0 }}/snapraid.parity
-{% endif %}
+{% for device in devices | selectattr('use', 'equalto', 'parity') %}
+parity {{ device.path }}/snapraid.parity
 {% endfor %}
 
 # set snapraid parity file locations on data disks
-{% for device in devices %}
-{% if device.use == 'disks' %}
-content {{ root_pool_path }}/{{ device['pool']}}/disks/{{ loop.index0 }}/.snapraid.content
-{% endif %}
+{% for device in devices | selectattr('use', 'equalto', 'disks') %}
+content {{ device.path }}/.snapraid.content
 {% endfor %}
 
 # set protected disks
-{% for device in devices %}
-{% if device.protected == true %}
-disk {{ device['pool']}}-{{ loop.index0 }} {{ root_pool_path }}/{{ device['pool']}}/{{ device['use']}}/{{ loop.index0 }}
-{% endif %}
+{% for device in devices | selectattr('protected', 'equalto', true) %}
+disk {{ device.path | regex_replace('^/', '') | regex_replace('/', '-') }} {{ device.path }}
 {% endfor %}
 
 # exclusions: exclude FILE, exclude DIR/ exclude /PATH/FILE exclude /PATH/DIR

@@ -4,27 +4,31 @@ storage:
       ansible_user: eric
       ansible_host: 192.168.86.21
       mergerfs_pools:
-        # TODO: NFS share pool
         - name: media
           path: /opt/htpc/media
       devices:
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K
           pool: media
           use: parity
+          path: /mnt/pools/media/parity/0
           protected: false  # Do not need to protect parity drives.
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82E705K
           pool: media
           use: disks
+          path: /mnt/pools/media/disks/1
           protected: true
         - name: /dev/disk/by-id/ata-WDC_WD60EFPX-68C5ZN0_WD-WXL2AB2FULDS
           pool: media
           use: disks
+          path: /mnt/pools/media/disks/2
           protected: true
         - name: /dev/disk/by-id/ata-WDC_WD60EFPX-68C5ZN0_WD-WX22DC3JNE0S
           pool: media
           use: disks
+          path: /mnt/pools/media/disks/3
           protected: true
         - name: /dev/disk/by-id/scsi-1ATA_WDC_WD30EFRX-68EUZN0_WD-WMC4N2130415
           pool: media
           use: cache
+          path: /opt/htpc/downloads
           protected: false  # Download caches not worth snapping
