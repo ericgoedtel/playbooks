@@ -2,7 +2,7 @@ nodes:
   hosts:
     node1:
       ansible_user: eric
-      ansible_host: 192.168.86.29
+      ansible_host: 192.168.86.54
 
 storage:
   hosts:

@@ -10,7 +10,7 @@ storage:
         - name: media
           path: /srv/shares/media
         - name: cache
-          path: /srv/shares/cache
+          path: /srv/shares/downloads
         - name: kinokube
           path: /srv/shares/kinokube
       devices:
