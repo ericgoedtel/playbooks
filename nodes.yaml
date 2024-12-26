@@ -133,36 +133,32 @@
           apiVersion: argoproj.io/v1alpha1
           kind: ApplicationSet
           metadata:
-            name: home-apps
+            name: origin
           spec:
             generators:
-              - git:
-                  repoURL: 'https://github.com/ericgoedtel/applications.git'
-                  revision: main
-                  directories:
-                    - path: 'apps/*'
+              - list:
+                  elements:
+                    - project: kinokube
+                    - project: cluster-addons
             template:
               metadata:
-                name: "{{ '{{' }}path.basename{{ '}}' }}"
+                name: "{{ '{{' }}project{{ '}}' }}"
               spec:
-                project: default
+                project: default  # TODO: Actually set this
                 source:
                   repoURL: "{{ argo_applications_repo }}"
-                  targetRevision: main
-                  path: "{{ '{{' }}path{{ '}}' }}/overlays/{{ environment_name }}"
-                destination:
+                  targetRevision: HEAD
+                  path: "projects/{{ '{{' }}project{{ '}}' }}"
+                destination:  # TODO: Probably should define clusters and not rely on it being local
                   server: 'https://kubernetes.default.svc'
-                  namespace: "{{ '{{' }}path.basename{{ '}}' }}"
-                ignoreDifferences:
-                  - kind: Secret
-                    name: default-api-key
-                    jsonPointers:
-                      - /data
-                syncPolicy:
-                  automated:
-                    prune: true
-                    selfHeal: false
-      tags: kubernetes, argo
+                  namespace: "argocd"  # For 'infrastructural' appsets
+                syncPolicy:  # TODO: Turn these on when things are settled.
+                  syncOptions:
+                    - CreateNamespace=false
+                  # automated:
+                  #   prune: true
+                  #   selfHeal: false
+      tags: kubernetes, argo, origin
       become: yes
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
