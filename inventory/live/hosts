@@ -7,12 +7,8 @@ storage:
         - name: media
           path: /opt/htpc/media
       nfs_shares:  # Add paths here for new shares
-        - name: media
-          path: /srv/shares/media
-        - name: cache
-          path: /srv/shares/downloads
-        - name: kinokube
-          path: /srv/shares/kinokube
+        - name: root
+          path: /srv/shares/
       devices:
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K
           pool: media
