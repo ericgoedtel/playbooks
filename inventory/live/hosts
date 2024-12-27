@@ -9,6 +9,10 @@ storage:
       nfs_shares:  # Add paths here for new shares
         - name: root
           path: /srv/shares/
+        - name: downloads
+          path: /opt/htpc/downloads
+        - name: media
+          path: /opt/htpc/media
       devices:
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K
           pool: media
