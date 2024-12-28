@@ -3,6 +3,7 @@ default_packages:
    - gcc
    - git
    - make
+   - nfs-common
    - python3-virtualenv
    - screen
 

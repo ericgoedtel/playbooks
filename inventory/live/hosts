@@ -13,6 +13,11 @@ storage:
           path: /opt/htpc/downloads
         - name: media
           path: /opt/htpc/media
+          options:
+            - "rw"
+            - "sync"
+            - "fsid=1"
+            - "no_subtree_check"
       devices:
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82BV90K
           pool: media
