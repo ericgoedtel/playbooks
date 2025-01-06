@@ -140,6 +140,7 @@
                   elements:
                     - project: kinokube
                     - project: cluster-addons
+                    - project: infrastructure
             template:
               metadata:
                 name: "{{ '{{' }}project{{ '}}' }}"
