@@ -17,17 +17,17 @@
     - name: Permanently unmount swap
       ansible.builtin.lineinfile:
         path: /etc/fstab
-        regexp: '^.*swap.*'
+        regexp: "^.*swap.*"
         state: absent
       become: true
       tags: bootstrap, swap
- 
+
     - name: Update APT package cache
       ansible.builtin.apt:
         update_cache: yes
       become: yes
       tags: bootstrap, packages, apt
-        
+
     - name: Install default apt packages
       ansible.builtin.package:
         name: "{{ item }}"
@@ -43,7 +43,7 @@
       loop: "{{ pip_packages }}"
       tags: bootstrap, packages, pip, kubernetes
 
-  post_tasks:  # Run these after k8s installation
+  post_tasks: # Run these after k8s installation
     - name: Autoremove Apt packages
       ansible.builtin.apt:
         autoremove: true
@@ -109,16 +109,18 @@
           kind: IngressRoute
           metadata:
             name: argocd
+            annotations:
+              external-dns.alpha.kubernetes.io/target: amolicob.cloud
           spec:
             routes:
-            - kind: Rule
-              match: PathPrefix(`/argocd`)
-              priority: 0
-              services:
-              - kind: Service
-                name: argocd-server
-                namespace: "{{ argocd_namespace }}"
-                port: 80
+              - kind: Rule
+                match: Host(`ship.amolicob.cloud`)
+                priority: 0
+                services:
+                  - kind: Service
+                    name: argocd-server
+                    namespace: "{{ argocd_namespace }}"
+                    port: 80
       tags: kubernetes, argo
       become: yes
       vars:
@@ -145,15 +147,15 @@
               metadata:
                 name: "{{ '{{' }}project{{ '}}' }}"
               spec:
-                project: default  # TODO: Actually set this
+                project: default # TODO: Actually set this
                 source:
                   repoURL: "{{ argo_applications_repo }}"
                   targetRevision: HEAD
                   path: "projects/{{ '{{' }}project{{ '}}' }}"
-                destination:  # TODO: Probably should define clusters and not rely on it being local
-                  server: 'https://kubernetes.default.svc'
-                  namespace: "argocd"  # For 'infrastructural' appsets
-                syncPolicy:  # TODO: Turn these on when things are settled.
+                destination: # TODO: Probably should define clusters and not rely on it being local
+                  server: "https://kubernetes.default.svc"
+                  namespace: "argocd" # For 'infrastructural' appsets
+                syncPolicy: # TODO: Turn these on when things are settled.
                   syncOptions:
                     - CreateNamespace=false
                   # automated:
@@ -165,5 +167,5 @@
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
   roles:
-     - role: pyratlabs.k3s
-       tags: kubernetes, k3s
+    - role: pyratlabs.k3s
+      tags: kubernetes, k3s
