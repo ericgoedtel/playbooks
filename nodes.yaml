@@ -151,17 +151,14 @@
                 source:
                   repoURL: "{{ argo_applications_repo }}"
                   targetRevision: HEAD
-                  path: "projects/{{ '{{' }}project{{ '}}' }}"
+                  path: "projects/{{ '{{' }}project{{ '}}' }}/overlays/{{ environment_name }}" # Project name is templated from the generator but environment name is from Ansible inventory
                 destination: # TODO: Probably should define clusters and not rely on it being local
                   server: "https://kubernetes.default.svc"
                   namespace: "argocd" # For 'infrastructural' appsets
                 syncPolicy: # TODO: Turn these on when things are settled.
                   syncOptions:
                     - CreateNamespace=false
-                  # automated:
-                  #   prune: true
-                  #   selfHeal: false
-      tags: kubernetes, argo, origin
+                  automated: {}
       become: yes
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
