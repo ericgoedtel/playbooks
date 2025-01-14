@@ -18,7 +18,7 @@ apt install sshpass
 ## Deployment
 Initial setup of a new system:
 ```
-ansible -i inventory/lab 192.168.86.64 -m setup -k
-ansible-playbook -Kk -i inventory/lab/ site.yml -e "install_ssh_keys=yes"
+ansible -i inventory/lab <ansible_hostname> -m setup -k
+ansible-playbook -Kk -i inventory/<environment>/ <playbook>.yml -e "install_ssh_keys=yes"
 ```
 Subsequent application of playbooks using SSH keys: `ansible-playbook -K -i inventory/lab/ site.yml`
