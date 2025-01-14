@@ -114,7 +114,7 @@
           spec:
             routes:
               - kind: Rule
-                match: Host(`ship.amolicob.cloud`)
+                match: PathPrefix(`/argocd`)
                 priority: 0
                 services:
                   - kind: Service

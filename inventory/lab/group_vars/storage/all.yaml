@@ -23,3 +23,7 @@ logrotate_scripts:
       - compress
       - copytruncate
       - delaycompress
+
+nobody_id:
+  user: 65534
+  group: 65534

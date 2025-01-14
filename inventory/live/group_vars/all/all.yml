@@ -1,16 +1,13 @@
-default_packages: # These are not really what should be installed *everywhere*. Problem for later
-   - cron
-   - gcc # needed?
-   - git # needed?
-   - make # needed?
-   - python3-pip # node
-   - rsyslog
-   - screen
+environment_name: live
 
-group_packages: []  # This solves the above problem, NYI
+ansible_python_interpreter: auto_silent
+default_packages:
+  - cron
+  # - gcc
+  - git
+  # - make
+  - nfs-common
+  - python3-virtualenv
+  - screen
 
 install_ssh_keys: no
-
-nobody_id:
-   user: 65534
-   group: 65534

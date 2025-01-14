@@ -1,10 +1,10 @@
 root_pool_path: /mnt/pools
 
 group_packages:
-   - mergerfs
-   - nfs-kernel-server
-   - parted
-   - smartmontools
+  - mergerfs
+  - nfs-kernel-server
+  - parted
+  - smartmontools
 
 snapraid_release: 12.2
 snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
@@ -29,3 +29,7 @@ logrotate_scripts:
       - compress
       - copytruncate
       - delaycompress
+
+nobody_id:
+  user: 65534
+  group: 65534

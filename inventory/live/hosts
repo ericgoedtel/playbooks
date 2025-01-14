@@ -1,3 +1,9 @@
+nodes:
+  hosts:
+    live-cluster-node1:
+      ansible_user: eric
+      ansible_host: 192.168.86.23
+
 storage:
   hosts:
     htpc:
@@ -6,7 +12,7 @@ storage:
       mergerfs_pools:
         - name: media
           path: /opt/htpc/media
-      nfs_shares:  # Add paths here for new shares
+      nfs_shares: # Add paths here for new shares
         - name: root
           path: /srv/shares/
         - name: downloads
@@ -23,7 +29,7 @@ storage:
           pool: media
           use: parity
           path: /mnt/pools/media/parity/0
-          protected: false  # Do not need to protect parity drives.
+          protected: false # Do not need to protect parity drives.
         - name: /dev/disk/by-id/ata-WDC_WD60EFZX-68B3FN0_WD-C82E705K
           pool: media
           use: disks
@@ -43,7 +49,7 @@ storage:
           pool: media
           use: cache
           path: /opt/htpc/downloads
-          protected: false  # Download caches not worth snapping
+          protected: false # Download caches not worth snapping
           # partitioning is opinionated about being a "pool"
         - name: /dev/disk/by-id/scsi-1ATA_Samsung_SSD_860_EVO_250GB_S4BFNJ0N306305X
           pool: shares
