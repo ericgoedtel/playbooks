@@ -1,6 +1,6 @@
 nodes:
   hosts:
-    node1:
+    lab-cluster-node1:
       ansible_user: eric
       ansible_host: 192.168.86.54
 
@@ -17,7 +17,7 @@ storage:
         - name: /dev/loop3
           pool: media
           use: parity
-          protected: false  # Do not need to protect parity drives.
+          protected: false # Do not need to protect parity drives.
         - name: /dev/loop4
           pool: media
           use: disks
@@ -33,4 +33,4 @@ storage:
         - name: /dev/loop7
           pool: media
           use: cache
-          protected: false  # Download caches not worth snapping
+          protected: false # Download caches not worth snapping
