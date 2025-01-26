@@ -1,4 +1,5 @@
 environment_name: lab
+release_branch: develop
 
 ansible_python_interpreter: auto_silent
 default_packages:

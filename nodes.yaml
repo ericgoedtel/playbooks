@@ -150,7 +150,7 @@
                 project: default # TODO: Actually set this
                 source:
                   repoURL: "{{ argo_applications_repo }}"
-                  targetRevision: HEAD
+                  targetRevision: "{{ release_branch }}"
                   path: "projects/{{ '{{' }}project{{ '}}' }}/overlays/{{ environment_name }}" # Project name is templated from the generator but environment name is from Ansible inventory
                 destination: # TODO: Probably should define clusters and not rely on it being local
                   server: "https://kubernetes.default.svc"
