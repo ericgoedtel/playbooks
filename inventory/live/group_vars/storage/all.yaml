@@ -1,10 +1,12 @@
 root_pool_path: /mnt/pools
+root_iscsi_path: /srv/shares/iscsi
 
 group_packages:
   - mergerfs
   - nfs-kernel-server
   - parted
   - smartmontools
+  - tgt
 
 snapraid_release: 12.2
 snapraid_url: "https://github.com/amadvance/snapraid/releases/download/v{{ snapraid_release }}/snapraid-{{ snapraid_release }}.tar.gz"
