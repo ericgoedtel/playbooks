@@ -6,31 +6,43 @@ nodes:
 
 storage:
   hosts:
-    wsl:
+    vbox-storage-node1:
       ansible_user: eric
-      ansible_host: 172.26.78.123
+      ansible_host: 192.168.86.49
+      iscsi_devices:
+        - name: plex
+          size: 25G
+        - name: sonarr
+        - name: radarr
+        - name: prowlarr
+        - name: transmission
+        - name: adguard
       mergerfs_pools:
-        # TODO: NFS share pool
         - name: media
-          path: /opt/htpc/media
+          path: /srv/shares/media
+      nfs_shares:
+        - name: root
+          path: /srv/shares/nfs
+        - name: media
+          path: /srv/shares/media
+          options:
+            - "rw"
+            - "sync"
+            - "fsid=1"
+            - "no_subtree_check"
       devices:
-        - name: /dev/loop3
+        - name: /dev/disk/by-id/scsi-1ATA_VBOX_HARDDISK_VB4e239b06-5e798844
           pool: media
           use: parity
-          protected: false # Do not need to protect parity drives.
-        - name: /dev/loop4
+          path: /mnt/pools/media/parity/0
+          protected: false
+        - name: /dev/disk/by-id/scsi-0ATA_VBOX_HARDDISK_VBa8019cc4-cf3b0817
           pool: media
           use: disks
+          path: /mnt/pools/media/disks/0
           protected: true
-        - name: /dev/loop5
-          pool: media
-          use: disks
-          protected: true
-        - name: /dev/loop6
-          pool: media
-          use: disks
-          protected: true
-        - name: /dev/loop7
-          pool: media
-          use: cache
-          protected: false # Download caches not worth snapping
+        - name: /dev/disk/by-id/scsi-0ATA_VBOX_HARDDISK_VB1c94176d-6b1a9c85
+          pool: shares
+          use: root
+          path: /srv/shares
+          protected: false
