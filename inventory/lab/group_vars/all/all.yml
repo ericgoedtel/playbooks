@@ -7,10 +7,7 @@ default_packages:
    - gcc
    - git
    - make
-   - mergerfs
-   - parted
    - python3-pip
    - screen
-   - smartmontools
 
 install_ssh_keys: no

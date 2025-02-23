@@ -8,13 +8,13 @@
         user: "{{ ansible_user }}"
       when: install_ssh_keys
       tags: install_keys
- 
+
     - name: Install default apt packages
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
       loop: "{{ default_packages }}"
-      become: yes
+      become: true
       tags: packages
 
     - name: Install group apt packages
@@ -22,17 +22,17 @@
         name: "{{ item }}"
         state: present
       loop: "{{ group_packages }}"
-      become: yes
+      become: true
       tags: packages
 
     - name: Configure SMART testing
       ansible.builtin.template:
-        src: templates/smartd.conf.j2  # Uses `devices`
+        src: templates/smartd.conf.j2 # Uses `devices`
         dest: /etc/smartd.conf
         owner: root
         group: root
-        mode: '0644'
-      become: yes
+        mode: "0644"
+      become: true
       notify: Restart smartd
       tags: monitoring, storage, smart
 
@@ -75,7 +75,7 @@
       ansible.builtin.shell:
         chdir: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
         cmd: "make install"
-      become: yes
+      become: true
       when: not snapraid_installation.stat.exists
       tags: snapraid
 
@@ -86,7 +86,7 @@
         owner: root
         group: root
         mode: "0644"
-      become: yes
+      become: true
       tags: snapraid
 
     - name: Create SnapRAID log path
@@ -96,7 +96,7 @@
         owner: root
         group: root
         mode: "0644"
-      become: yes
+      become: true
       tags: snapraid
 
     - name: Add partitions for each disk device
@@ -111,17 +111,17 @@
       loop_control:
         index_var: index
       register: partitions
-      become: yes
+      become: true
       tags: storage, partitions
 
     - name: Create data disk filesystems from partitioned disks
       community.general.filesystem:
         dev: "/dev/disk/by-partlabel/{{ item }}"
-        force: false  # Definitely don't allow this
+        force: false # Definitely don't allow this
         fstype: "ext4"
         state: "present"
       loop: "{{ partitions.results | map(attribute='partitions') | map('first') | map(attribute='name') | list }}"
-      become: yes
+      become: true
       tags: storage, filesystems
 
     - name: Create data disk folder structure
@@ -132,7 +132,7 @@
         group: "{{ ansible_user }}"
         mode: "755"
       loop: "{{ devices }}"
-      become: yes
+      become: true
       tags: storage, paths
 
     - name: Create nfs share structure
@@ -143,7 +143,7 @@
         group: "nogroup"
         mode: "755"
       loop: "{{ nfs_shares }}"
-      become: yes
+      become: true
       tags: storage, nfs, paths
 
     - name: Set nfs share permissions and ownership
@@ -151,11 +151,11 @@
         path: "{{ item.path }}"
         owner: "{{ nobody_id['user'] }}"
         group: "{{ nobody_id['group'] }}"
-        mode: '0755'
+        mode: "0755"
         recurse: yes
       loop: "{{ devices | selectattr('pool', 'equalto', 'shares') }}"
-      become: yes
-      tags: storage, nfs, paths, debug
+      become: true
+      tags: storage, nfs, paths
 
     - name: Configure NFS exports
       template:
@@ -163,8 +163,68 @@
         dest: /etc/exports
       notify:
         - Restart nfs
-      become: yes
+      become: true
       tags: storage, nfs
+
+    - name: Create iscsi device paths
+      ansible.builtin.file:
+        path: "{{ root_iscsi_path }}/{{ item.name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0600"
+        recurse: true
+      loop: "{{ iscsi_devices }}"
+      become: true
+      tags: storage, iscsi
+      register: file_result
+
+    - name: Create iscsi device image files
+      community.general.filesize:
+        path: "{{ root_iscsi_path }}/{{ item.name }}/disk.img"
+        size: "{{ item.size | default('3G') }}"
+        sparse: true
+      loop: "{{ iscsi_devices }}"
+      become: true
+      tags: storage, iscsi
+      register: filesize_result
+
+    - name: Partition the image files
+      community.general.parted:
+        device: "{{ item.path }}"
+        label: gpt
+        name: "{{ (item.path | split('/'))[4] }}" # kludge to label it by path
+        number: 1
+        state: present
+        part_type: primary
+        fs_type: ext4
+      loop: "{{ filesize_result.results }}"
+      become: true
+      tags: storage, iscsi
+      register: parted_result
+
+    - name: Write filesystems for iscsi targets
+      community.general.filesystem:
+        dev: "{{ item.disk.dev }}"
+        force: false # Definitely don't allow this
+        fstype: ext4
+        state: present
+      loop: "{{ parted_result.results }}"
+      become: true
+      tags: storage, iscsi
+
+    - name: Write iscsi target configurations
+      ansible.builtin.template:
+        src: templates/iscsi.conf.j2
+        dest: "/etc/tgt/conf.d/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ iscsi_devices }}"
+      become: true
+      notify:
+        - Restart tgt
+      tags: storage, iscsi
 
     # Kludgey hack which assumes only one part per disk
     - name: Automount media data disk filesystems
@@ -175,10 +235,10 @@
         path: "{{ item.path }}"
         src: "{{ item.name }}-part1"
         state: mounted
-      loop: "{{ devices | selectattr('pool', 'in', ['media']) }}"  # TODO: Probably should set this as a variable
+      loop: "{{ devices | selectattr('pool', 'in', ['media']) }}" # TODO: Probably should set this as a variable
       loop_control:
         index_var: index
-      become: yes
+      become: true
       tags: storage, automount
 
     - name: Automount mergerfs pools
@@ -191,7 +251,7 @@
         src: "{{ root_pool_path }}/{{ item.name }}/disks/*"
         state: "mounted"
       loop: "{{ mergerfs_pools }}"
-      become: yes
+      become: true
       tags: storage, automount
 
     - name: Automount nfs shares
@@ -200,10 +260,10 @@
         boot: yes
         fstype: ext4
         path: "{{ item.path }}"
-        src: "{{ item.name }}"
+        src: "{{ item.name }}-part1"
         state: "mounted"
       loop: "{{ devices | selectattr('pool', 'equalto', 'shares') }}"
-      become: yes
+      become: true
       tags: storage, nfs, automount
 
     - name: Schedule snapraid sync
@@ -211,7 +271,7 @@
         name: snapraid-sync
         special_time: daily
         job: /usr/local/bin/snapraid sync -l /var/log/snapraid/sync.log
-      become: yes
+      become: true
       tags: snapraid, logging
 
     - name: Schedule snapraid scrub
@@ -219,22 +279,27 @@
         name: snapraid-scrub
         special_time: weekly
         job: /usr/local/bin/snapraid scrub -l /var/log/snapraid/scrub.log
-      become: yes
+      become: true
       tags: snapraid, logging
 
   roles:
-     - role: nickhammond.logrotate
-       tags: logging, monitoring
-       become: yes
+    - role: nickhammond.logrotate
+      tags: logging, monitoring
+      become: true
 
   handlers:
     - name: Restart smartd
       systemd:
         name: smartmontools
         state: restarted
-      become: yes
+      become: true
     - name: Restart nfs
       service:
         name: nfs-kernel-server
         state: restarted
-      become: yes
+      become: true
+    - name: Restart tgt
+      systemd:
+        name: tgt
+        state: restarted
+      become: true

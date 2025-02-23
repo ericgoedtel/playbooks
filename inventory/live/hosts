@@ -9,6 +9,14 @@ storage:
     htpc:
       ansible_user: eric
       ansible_host: 192.168.86.21
+      iscsi_devices:
+        - name: plex
+          size: 25G
+        - name: sonarr
+        - name: radarr
+        - name: prowlarr
+        - name: transmission
+        - name: adguard
       mergerfs_pools:
         - name: media
           path: /opt/htpc/media
