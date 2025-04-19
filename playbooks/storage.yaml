@@ -1,5 +1,6 @@
 ---
-- hosts: storage
+- name: Configure storage servers
+  hosts: storage
   pre_tasks:
     - name: Install public key
       ansible.posix.authorized_key:
@@ -39,20 +40,25 @@
     - name: Check for SnapRAID install
       ansible.builtin.stat:
         path: /usr/local/bin/snapraid
-      register: snapraid_installation
       tags: snapraid
 
     - name: Create build directory
       ansible.builtin.file:
         path: "{{ snapraid_build_path }}"
         state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0775"
       tags: snapraid
 
     - name: Download SnapRAID
       ansible.builtin.get_url:
         url: "{{ snapraid_url }}"
         dest: "{{ snapraid_build_path }}"
-      when: not snapraid_installation.stat.exists
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0664"
+        force: false
       tags: snapraid
 
     - name: Extract SnapRAID
@@ -60,23 +66,22 @@
         src: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}.tar.gz"
         dest: "{{ snapraid_build_path }}"
         remote_src: true
-      register: snapraid_extraction
-      when: not snapraid_installation.stat.exists
+        creates: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
       tags: snapraid
 
     - name: Make and build SnapRAID
       ansible.builtin.shell:
         chdir: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
         cmd: "./configure && make"
-      when: snapraid_extraction.changed
+        creates: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}/snapraid"
       tags: snapraid
 
     - name: Install SnapRAID
-      ansible.builtin.shell:
+      ansible.builtin.command:
         chdir: "{{ snapraid_build_path }}/snapraid-{{ snapraid_release }}"
         cmd: "make install"
+        creates: "/usr/local/bin/snapraid"
       become: true
-      when: not snapraid_installation.stat.exists
       tags: snapraid
 
     - name: Configure SnapRAID
@@ -152,15 +157,18 @@
         owner: "{{ nobody_id['user'] }}"
         group: "{{ nobody_id['group'] }}"
         mode: "0755"
-        recurse: yes
+        recurse: true
       loop: "{{ devices | selectattr('pool', 'equalto', 'shares') }}"
       become: true
       tags: storage, nfs, paths
 
     - name: Configure NFS exports
-      template:
+      ansible.builtin.template:
         src: exports.j2
         dest: /etc/exports
+        owner: root
+        group: root
+        mode: "0644"
       notify:
         - Restart nfs
       become: true
@@ -230,7 +238,7 @@
     - name: Automount media data disk filesystems
       ansible.posix.mount:
         backup: true
-        boot: yes
+        boot: true
         fstype: ext4
         path: "{{ item.path }}"
         src: "{{ item.name }}-part1"
@@ -244,7 +252,7 @@
     - name: Automount mergerfs pools
       ansible.posix.mount:
         backup: true
-        boot: yes
+        boot: true
         fstype: fuse.mergerfs
         opts: "moveonenospc=true"
         path: "{{ item.path }}"
@@ -257,7 +265,7 @@
     - name: Automount nfs shares
       ansible.posix.mount:
         backup: true
-        boot: yes
+        boot: true
         fstype: ext4
         path: "{{ item.path }}"
         src: "{{ item.name }}-part1"
@@ -289,17 +297,17 @@
 
   handlers:
     - name: Restart smartd
-      systemd:
+      ansible.builtin.systemd:
         name: smartmontools
         state: restarted
       become: true
     - name: Restart nfs
-      service:
+      ansible.builtin.systemd:
         name: nfs-kernel-server
         state: restarted
       become: true
     - name: Restart tgt
-      systemd:
+      ansible.builtin.systemd:
         name: tgt
         state: restarted
       become: true
