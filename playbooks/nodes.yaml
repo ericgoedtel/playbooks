@@ -1,5 +1,6 @@
 ---
-- hosts: nodes
+- name: Configure k3s nodes
+  hosts: nodes
   pre_tasks:
     - name: Install public key
       ansible.posix.authorized_key:
@@ -10,8 +11,10 @@
       tags: bootstrap, ssh
 
     - name: Disable swap
-      ansible.builtin.shell: swapoff -a
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb > 0
       become: true
+      changed_when: ansible_swaptotal_mb > 0
       tags: bootstrap, swap
 
     - name: Permanently unmount swap
@@ -24,8 +27,8 @@
 
     - name: Update APT package cache
       ansible.builtin.apt:
-        update_cache: yes
-      become: yes
+        update_cache: true
+      become: true
       tags: bootstrap, packages, apt
 
     - name: Install default apt packages
@@ -33,7 +36,7 @@
         name: "{{ item }}"
         state: present
       loop: "{{ default_packages }}"
-      become: yes
+      become: true
       tags: bootstrap, packages, apt
 
     - name: Install remote pip packages
@@ -59,7 +62,7 @@
         kind: Namespace
         name: "{{ argocd_namespace }}"
       tags: argo
-      become: yes
+      become: true
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
@@ -70,7 +73,7 @@
         state: present
         src: "{{ argocd_manifest_path }}"
       tags: kubernetes, argo
-      become: yes
+      become: true
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
@@ -87,17 +90,10 @@
             server.insecure: "true"
             server.rootpath: /argocd
       tags: kubernetes, argo
-      register: configmap
-      become: yes
+      notify: Restart ArgoCD
+      become: true
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
-
-    - name: Restart ArgoCD
-      ansible.builtin.shell: |
-        kubectl rollout restart deployment argocd-server -n {{ argocd_namespace}}
-      become: true
-      tags: kubernetes, argo
-      when: configmap.changed
 
     - name: Expose ArgoCD server
       kubernetes.core.k8s:
@@ -122,7 +118,7 @@
                     namespace: "{{ argocd_namespace }}"
                     port: 80
       tags: kubernetes, argo
-      become: yes
+      become: true
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
@@ -151,7 +147,8 @@
                 source:
                   repoURL: "{{ argo_applications_repo }}"
                   targetRevision: "{{ release_branch }}"
-                  path: "projects/{{ '{{' }}project{{ '}}' }}/overlays/{{ environment_name }}" # Project name is templated from the generator but environment name is from Ansible inventory
+                  # Project name is templated from the generator but environment name is from Ansible inventory
+                  path: "projects/{{ '{{' }}project{{ '}}' }}/overlays/{{ environment_name }}"
                 destination: # TODO: Probably should define clusters and not rely on it being local
                   server: "https://kubernetes.default.svc"
                   namespace: "argocd" # For 'infrastructural' appsets
@@ -159,10 +156,18 @@
                   syncOptions:
                     - CreateNamespace=false
                   automated: {}
-      become: yes
+      become: true
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 
   roles:
     - role: pyratlabs.k3s
       tags: kubernetes, k3s
+
+  handlers:
+    - name: Restart ArgoCD
+      ansible.builtin.command: |
+        kubectl rollout restart deployment argocd-server -n {{ argocd_namespace }}
+      become: true
+      changed_when: true
+      tags: kubernetes, argo

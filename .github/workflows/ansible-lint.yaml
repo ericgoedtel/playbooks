@@ -1,0 +1,16 @@
+---
+name: ansible-lint
+on:
+  pull_request:
+jobs:
+  build:
+    name: Ansible Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@c16f018b1bdfdea6717f4b5b1b141a78b86021cd # 25.2.1
+        # optional (see below):
+        with:
+          working_directory: playbooks/
+          requirements_file: ../ansible-requirements.yml
