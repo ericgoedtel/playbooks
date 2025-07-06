@@ -28,7 +28,7 @@
 
     - name: Configure SMART testing
       ansible.builtin.template:
-        src: templates/smartd.conf.j2 # Uses `devices`
+        src: smartd.conf.j2 # Uses `devices`
         dest: /etc/smartd.conf
         owner: root
         group: root
@@ -86,7 +86,7 @@
 
     - name: Configure SnapRAID
       ansible.builtin.template:
-        src: templates/snapraid.conf.j2
+        src: snapraid.conf.j2
         dest: /etc/snapraid.conf
         owner: root
         group: root
@@ -223,7 +223,7 @@
 
     - name: Write iscsi target configurations
       ansible.builtin.template:
-        src: templates/iscsi.conf.j2
+        src: iscsi.conf.j2
         dest: "/etc/tgt/conf.d/{{ item.name }}.conf"
         owner: root
         group: root

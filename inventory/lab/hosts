@@ -8,10 +8,9 @@ storage:
   hosts:
     vbox-storage-node1:
       ansible_user: eric
-      ansible_host: 192.168.86.49
+      ansible_host: 192.168.86.45
       iscsi_devices:
         - name: plex
-          size: 25G
         - name: sonarr
         - name: radarr
         - name: prowlarr
