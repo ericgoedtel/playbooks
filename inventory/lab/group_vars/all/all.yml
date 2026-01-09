@@ -1,6 +1,8 @@
 environment_name: lab
 release_branch: develop
 
+domain_name: lab.amolicob.cloud
+
 ansible_python_interpreter: auto_silent
 default_packages:
    - cron
