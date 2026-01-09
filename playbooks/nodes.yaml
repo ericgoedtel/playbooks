@@ -106,7 +106,7 @@
           metadata:
             name: argocd
             annotations:
-              external-dns.alpha.kubernetes.io/target: amolicob.cloud
+              external-dns.alpha.kubernetes.io/target: "{{ domain_name }}"
           spec:
             routes:
               - kind: Rule
@@ -139,6 +139,8 @@
                     - project: kinokube
                     - project: cluster-addons
                     - project: infrastructure
+                    - project: mealwhisperer
+                    - project: minecraft
             template:
               metadata:
                 name: "{{ '{{' }}project{{ '}}' }}"
@@ -157,6 +159,7 @@
                     - CreateNamespace=false
                   automated: {}
       become: true
+      tags: kubernetes, argo, appset
       vars:
         ansible_python_interpreter: "{{ virtualenv_root }}/bin/python"
 

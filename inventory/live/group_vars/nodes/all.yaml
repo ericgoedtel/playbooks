@@ -20,11 +20,10 @@ k3s_become: yes
 k3s_release_version: v1.31.2+k3s1
 k3s_kubeconf_file: /etc/rancher/k3s/k3s.yaml
 
-argocd_namespace: argocd  # Be mindful, the file below has hardcoded namespaces
+argocd_namespace: argocd # Be mindful, the file below has hardcoded namespaces
 argocd_manifest_path: https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v2.13.0/manifests/install.yaml
 argo_applications_repo: https://github.com/ericgoedtel/applications.git
 
 k3s_build_cluster: no
-k3s_become: yes
 
 kubeconf_local_path: /tmp/kubeconfig
