@@ -139,7 +139,6 @@
                     - project: kinokube
                     - project: cluster-addons
                     - project: infrastructure
-                    - project: mealwhisperer
                     - project: minecraft
             template:
               metadata:
