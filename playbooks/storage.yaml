@@ -5,8 +5,12 @@
     - name: Install public key
       ansible.posix.authorized_key:
         exclusive: true
-        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        key: "{{ lookup('file', lookup('ansible.builtin.first_found', paths)) }}"
         user: "{{ ansible_user }}"
+      vars:
+        paths:
+          - "~/.ssh/id_ed25519.pub"
+          - "~/.ssh/id_rsa.pub"
       when: install_ssh_keys
       tags: install_keys
 
@@ -25,6 +29,18 @@
       loop: "{{ group_packages }}"
       become: true
       tags: packages
+
+    - name: Configuring static addressing
+      ansible.builtin.template:
+        owner: root
+        group: root
+        mode: '0600'
+        src: templates/netplan.yaml.j2
+        dest: /etc/netplan/00-installer-config.yaml
+        validate: /usr/sbin/netplan generate --config-file %s
+      become: true
+      notify: Apply Netplan
+      tags: networking
 
     - name: Configure SMART testing
       ansible.builtin.template:
@@ -311,3 +327,7 @@
         name: tgt
         state: restarted
       become: true
+    - name: Apply Netplan
+      ansible.builtin.command: netplan apply
+      become: true
+      changed_when: false
