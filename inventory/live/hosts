@@ -2,13 +2,13 @@ nodes:
   hosts:
     live-cluster-node1:
       ansible_user: eric
-      ansible_host: 192.168.86.23
+      ansible_host: 192.168.1.23
 
 storage:
   hosts:
     htpc:
       ansible_user: eric
-      ansible_host: 192.168.86.21
+      ansible_host: 192.168.1.21
       iscsi_devices:
         - name: plex
           size: 25G
