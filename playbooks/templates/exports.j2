@@ -1,4 +1,4 @@
 # /etc/exports file for NFS
 {% for share in nfs_shares %}
-{{ share.path }} {{ share.client | default('192.168.86.0/24') }}({{ share.options | default(['rw', 'sync', 'no_subtree_check']) | join(',') }})
+{{ share.path }} {{ share.client | default('192.168.1.0/24') }}({{ share.options | default(['rw', 'sync', 'no_subtree_check']) | join(',') }})
 {% endfor %}
