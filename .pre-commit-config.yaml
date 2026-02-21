@@ -1,0 +1,24 @@
+repos:
+  - repo: local
+    hooks:
+      - id: alejandra
+        name: alejandra
+        entry: alejandra
+        language: system
+        files: \.nix$
+        types: [file]
+
+      - id: deadnix
+        name: deadnix
+        entry: deadnix
+        language: system
+        files: \.nix$
+        types: [file]
+
+      - id: statix
+        name: statix
+        entry: statix check
+        language: system
+        files: \.nix$
+        types: [file]
+        pass_filenames: false
