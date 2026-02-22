@@ -14,6 +14,7 @@
     ./networking.nix
     ../../modules/ntopng.nix
     ../../modules/caddy.nix
+    ../../modules/localstack.nix
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -34,6 +35,7 @@
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
     vim
+    docker-compose
   ];
 
   services.openssh.enable = true;
