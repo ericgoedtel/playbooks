@@ -7,11 +7,19 @@
   lib,
   ...
 }: {
-  # Enable KVM and QEMU/Libvirt for VMs
-  virtualisation.libvirtd.enable = true;
+  virtualisation = {
+    libvirtd.enable = true;
+    lxc.enable = true;
+    docker.enable = true;
+  };
 
-  # Enable LXC for containers
-  virtualisation.lxc.enable = true;
+  services.localstack = {
+    enable = true;
+    hostname = "localstack.pilothouse.takamagahara.lan";
+    services = ["s3" "lambda" "dynamodb" "cloudformation" "sts" "iam"];
+    openFirewall = true;
+    enableCaddy = true;
+  };
 
   boot = {
     extraModprobeConfig = ''      # enable nested virtualization for Intel CPUs
