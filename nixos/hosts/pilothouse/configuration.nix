@@ -12,6 +12,8 @@
     ./storage.nix
     ./virtualization.nix
     ./networking.nix
+    ../../modules/ntopng.nix
+    ../../modules/caddy.nix
   ];
 
   boot.loader.systemd-boot.enable = true;
