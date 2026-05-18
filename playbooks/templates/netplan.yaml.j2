@@ -1,5 +1,5 @@
 # Managed by Ansible - Changes will be overwritten
-{% set gateway_ip = hostvars[inventory_hostname]['ansible_host'] | ipaddr('network') | ipaddr('1') | ipaddr('address') %}
+{% set gateway_ip = hostvars[inventory_hostname]['ansible_host'] | ansible.utils.ipaddr('network') | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') %}
 network:
   version: 2
   renderer: networkd
